@@ -1,49 +1,64 @@
 
 let map;
-let directionsService;
-let directionsRenderer;
+let markerFrom;
+let markerTo;
+let polyline;
 
+// Initialize the map
 function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 7,
-        center: { lat: 20.5937, lng: 78.9629 }, // Default location
-    });
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer();
-    directionsRenderer.setMap(map);
+    map = L.map('map').setView([51.505, -0.09], 13); // Default center
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
 }
 
+// Calculate distance and fare
 function calculateFare() {
-    const from = document.getElementById("from").value;
-    const to = document.getElementById("to").value;
+    const fromInput = document.getElementById("from").value;
+    const toInput = document.getElementById("to").value;
     const rate = parseFloat(document.getElementById("rate").value);
 
-    if (!from || !to) {
+    if (!fromInput || !toInput) {
         alert("Please enter both locations!");
         return;
     }
 
-    const request = {
-        origin: from,
-        destination: to,
-        travelMode: google.maps.TravelMode.DRIVING,
-    };
+    const [fromLat, fromLng] = fromInput.split(",").map(coord => parseFloat(coord.trim()));
+    const [toLat, toLng] = toInput.split(",").map(coord => parseFloat(coord.trim()));
 
-    directionsService.route(request, (result, status) => {
-        if (status == google.maps.DirectionsStatus.OK) {
-            directionsRenderer.setDirections(result);
+    if (isNaN(fromLat) || isNaN(fromLng) || isNaN(toLat) || isNaN(toLng)) {
+        alert("Invalid coordinates! Use format: Latitude, Longitude");
+        return;
+    }
 
-            const distanceKm = result.routes[0].legs[0].distance.value / 1000; // Meters to KM
-            const fare = (distanceKm * rate).toFixed(2); // Calculate fare
+    const from = L.latLng(fromLat, fromLng);
+    const to = L.latLng(toLat, toLng);
 
-            document.getElementById("output").innerHTML = `
-                <strong>Distance:</strong> ${distanceKm.toFixed(2)} km<br>
-                <strong>Fare:</strong> $${fare}
-            `;
-        } else {
-            alert("Could not calculate the route. Please try again.");
-        }
-    });
+    // Calculate distance (Haversine formula)
+    const distanceKm = from.distanceTo(to) / 1000;
+
+    // Calculate fare
+    const fare = (distanceKm * rate).toFixed(2);
+
+    // Update map
+    if (markerFrom) map.removeLayer(markerFrom);
+    if (markerTo) map.removeLayer(markerTo);
+    if (polyline) map.removeLayer(polyline);
+
+    markerFrom = L.marker(from).addTo(map).bindPopup("Starting Point").openPopup();
+    markerTo = L.marker(to).addTo(map).bindPopup("Destination").openPopup();
+    polyline = L.polyline([from, to], { color: 'blue' }).addTo(map);
+
+    map.fitBounds(polyline.getBounds());
+
+    // Update output
+    document.getElementById("output").innerHTML = `
+        <strong>Distance:</strong> ${distanceKm.toFixed(2)} km<br>
+        <strong>Fare:</strong> $${fare}
+    `;
 }
 
+// Initialize the map when the page loads
 window.onload = initMap;
