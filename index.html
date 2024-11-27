@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxi Service - Distance & Fare Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>QuickRide Taxi Service</h1>
+            <p>Book your ride with ease and calculate the estimated fare!</p>
+        </header>
+
+        <section class="booking-form">
+            <h2>Book Your Taxi</h2>
+            <div class="form">
+                <label for="from">From:</label>
+                <input type="text" id="from" placeholder="Enter pickup location">
+                <label for="to">To:</label>
+                <input type="text" id="to" placeholder="Enter destination">
+                <label for="rate">Rate per km:</label>
+                <input type="number" id="rate" value="1.5" step="0.1"> <!-- Default rate -->
+                <button onclick="calculateFare()">Get Fare</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Map & Fare Details</h2>
+            <div id="map"></div>
+            <p id="output"></p>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 QuickRide Taxi Service</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
